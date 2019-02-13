@@ -1,6 +1,7 @@
 # coding=utf-8
 from __future__ import absolute_import
 
+from flatten_json import flatten
 import json
 import octoprint.plugin
 import requests
@@ -57,12 +58,13 @@ class InsightsPlugin(octoprint.plugin.StartupPlugin,
 
 	def on_event(self, event, payload):
 		output = {'message': event}
-		output.update(self.get_print_details())
+		self.update_if_not_empty(output, self.get_print_details())
+		self.update_if_not_empty(output, payload)
 		self.post_event_to_insights(output)
 
 	def on_print_progress(self, location, path, progress):
 		output = {'message': 'Print Job Status', 'file': path, 'location': location, 'progress': progress}
-		output.update(self.get_print_details())
+		self.update_if_not_empty(output, self.get_print_details())
 		self.post_event_to_insights(output)
 
 	def on_slicing_progress(self, slicer, source_location, source_path, destination_location, destination_path, progress):
@@ -70,15 +72,20 @@ class InsightsPlugin(octoprint.plugin.StartupPlugin,
 
 	def get_print_details(self):
 		deets = {}
-		deets.update(self._printer.get_current_data())
-		deets.update(self._printer.get_current_job())
-		deets.update(self._printer.get_current_temperatures())
-		deets.update({'state': self._printer.get_state_string()})
+		self.update_if_not_empty(deets, self._printer.get_current_data())
+		self.update_if_not_empty(deets, self._printer.get_current_job())
+		self.update_if_not_empty(deets, self._printer.get_current_temperatures())
+		self.update_if_not_empty(deets, {'state': self._printer.get_state_string()})
 		return deets
+
+	def update_if_not_empty(self, thisdict, thisvar):
+		if thisvar is not None and thisvar:
+			thisdict.update(thisvar)
 
 	def post_event_to_insights(self, event):
 		event['eventType'] = self._settings.get(['event_type'])
-		event_json = json.dumps([event])
+		event_json = json.dumps([flatten(event, '.')])
+		self._logger.debug("Payload: %s", event_json)
 		headers = {
 			'Content-Type': 'application/json',
 			'X-Insert-Key': self._settings.get(['api_inskey'])
