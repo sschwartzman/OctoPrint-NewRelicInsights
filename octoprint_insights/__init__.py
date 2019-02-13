@@ -48,11 +48,11 @@ class InsightsPlugin(octoprint.plugin.StartupPlugin,
 
 	def on_settings_save(self, data):
 		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
-		self.post_event_to_insights({'message': 'Insights plugin settings saved'})
+		self.post_event_to_insights({'message': 'InsightsPluginSettingsSaved'})
 		self._logger.info("Insights plugin settings saved.")
 
 	def on_after_startup(self):
-		self.post_event_to_insights({'message': 'Octoprint started'})
+		self.post_event_to_insights({'message': 'OctoprintStarted'})
 		self._logger.info("Insights plugin started.")
 
 	def on_event(self, event, payload):
