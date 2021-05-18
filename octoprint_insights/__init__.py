@@ -99,6 +99,7 @@ class InsightsPlugin(octoprint.plugin.StartupPlugin,
 		return success
 
 __plugin_name__ = "Insights Plugin"
+__plugin_pythoncompat__ = ">=2.7,<4"
 
 def __plugin_load__():
 	global __plugin_implementation__
